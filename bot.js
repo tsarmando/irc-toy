@@ -20,20 +20,16 @@ const startBot = (brain) => {
 		bot.say(channel, "...dude...help me!")
 	})
 	//keeps track of everything said in channel
-	bot.addListener('message#loooseGoose', function (from, message) {
-		    console.log(from + ' => #looseGoose: ' + message);
+	bot.addListener('message#yourServer', function (from, message) {
+		    console.log(from + ' => #yourServer: ' + message);
 		    if(message)	
 			    bot.say('#loooseGoose', brainTools.makeSentence(brain, message[0], 25));
 	})
-	bot.addListener('message#loooseGoose', function (from, message) {
+	/*
+	**Still need to work on this part
+	bot.addListener('message#yourServer', function (from, message) {
 		console.log(typeof message)
 		brainTools.fillDictionary(brain,message)//adds new messages to  dictionary
-	})
+	})*/
 }
 mp.loadMapJson('brain.json', startBot) 
-
-//const brain = new map()
-//brain.set("hello", ["yo", "hi", "test"])
-//brain.set("other", ["me", "go", "fall"])
-
-/*brainTools.fillDictionary(brain,"This is a test message. Here is some filler. Boy goes boom. Cat speaks meow")*/
