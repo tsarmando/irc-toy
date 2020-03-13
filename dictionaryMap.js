@@ -2,6 +2,7 @@
 let fs = require('fs')
 const myDictionary = new Map()
 let ircLog = ''
+let sentence = "Alright, listen up. This is a test. is dog is cat is boy is cat"
 /*
 fs.readFile('./cleanLog.txt','utf8', (err, data) => {
 	if(err)
@@ -9,38 +10,68 @@ fs.readFile('./cleanLog.txt','utf8', (err, data) => {
 	ircLog = data		
 	if(ircLog !='')
 	fillDictionary(myDictionary,ircLog)
-	let seed = (randomKey(myDictionary))
-	console.log(myDictionary.get("I"))
-	console.log(makeSentence(myDictionary,"blade", 50))
-	console.log(myDictionary)
-	writeMapJson(myDictionary, "brain.json")
+	//console.log(myDictionary.get("blade"))
+	const map1 = new Map();
+	fillDictionary(map1,sentence)
+	let seed  = randomKey(map1)
+	let seed1 = randomKey(map1)
+	let seed2 = randomKey(map1)
+	let seed3 = randomKey(myDictionary)
+	console.log(map1.get(seed))
+	console.log(makeSentence(map1,seed2, 3))
+	console.log(makeSentence(myDictionary,seed3, 50))
+//	console.log(myDictionary)
+//	writeMapJson(myDictionary, "brain.json")
 })
 
 */
 const fillDictionary = (dictionary,str) =>{
-	let arr = str.split(' ')
+	let arr = str.split(' '), eof = false
 	for(let i = 0; i<arr.length;i++){
-		let values = [] 
+		let values = [], total = 1 
 		if(i+1<arr.length){
-			values.push(arr[i+1])
+			values.push({"word": arr[i+1], "frequency": 1})
 		}
-		//todo add frequency/probabilities to values 
+		else eof = true
 		if(dictionary.has(arr[i])){ 
-			let mergedValues = new Set (dictionary.get(arr[i]))
-			mergedValues.add(...values)
-			dictionary.set(arr[i],new Array(...mergedValues))
+				let [old,numWords] = dictionary.get(arr[i]), 
+				elemOfDictionary = false;
+			if(!eof){
+				for(let k = 0; k<old.length-1; k++){
+					if(old[k].word == values[0].word) {
+						old[k].frequency++	
+						dictionary.set(arr[i], [old,++numWords])
+						elemOfDictionary = true;
+					}
+				}
+			if(!elemOfDictionary){
+					old.push(values[0])
+					++numWords	
+					dictionary.set(arr[i], [old,numWords])
+				}
+			}
+			else{
+				old.push({"word": '', "frequency": 0})
+				dictionary.set(arr[i], [old,numWords])
+			}	
 		}
 		else{ 
-//			values = new Array(...values)
-			dictionary.set(arr[i],values)
+			if(!eof)
+				dictionary.set(arr[i],[values,total])
+			else {
+				 val = ({"word": '', "frequency": 0})
+				dictionary.set(arr[i], [val,0])
+			}	
 		}
 
 	}
-	dictionary.set(arr[arr.length-1],["O/"])
+
 }	
 
 const randRange = (lower,upper) => lower + Math.floor(Math.random() * (upper-lower))
 const randArrIdx = (arr) => (!arr) ? "":arr[randRange(0,arr.length-1)]
+//random key may experience async behavior, ex console.log(iterator)
+//further testing required
 const randomKey = (dictionary) => {
 	let iterator = dictionary.keys(), stop = randRange(0,dictionary.size)
 	for(let i = 0; i< stop-1; i++){
@@ -48,39 +79,28 @@ const randomKey = (dictionary) => {
 	}
 	return iterator.next().value
 }
+
+const probableWord = (wrdFreq, total) => {
+	let rand = Math.random(), probability = 0
+	for(let i = 0; i<wrdFreq.length-1; i++){
+		probability += wrdFreq[i].frequency/total
+		if(rand <= probability)
+		       return wrdFreq[i].word	
+	}
+	return wrdFreq[wrdFreq.length-1].word
+}
+
 const makeSentence = (dictionary,seed, sentenceLength) => {
+//	console.log("Dictionary is:" + " " + JSON.stringify(dictionary))
 	if(sentenceLength == 0) return ""
 	else {
 		if(!dictionary.has(seed))
 			seed = randomKey(dictionary)
-			let sentence = randArrIdx(dictionary.get(seed)) 
-			return sentence + " " + makeSentence(dictionary,sentence[sentence.length-1],sentenceLength-1)
-																	}
+		let [words,total] = dictionary.get(seed)
+		let sentence = probableWord(words,total) 
+		return sentence + " " + makeSentence(dictionary,sentence,sentenceLength-1)
+	}
 }
 
 module.exports = {makeSentence: makeSentence, randomKey: randomKey, 
-		randArrIdx: randArrIdx, randRange: randRange, fillDictionary : fillDictionary}
-
-//To do: turn array into a Dictionary using Map
-//dictionary takes each unique word in the text as key 
-//for each key there is a word object:
-//the word object contains an array (map with count of string?) ,where ever element is a string of n words that follows that follow the key, 
-//and a function that selects a phrase based off of prob
-//After this is created, this can be made into a json -> text file 
-/* 
-let dictionary = new Map()
-
-class freqMap{
-	constructor(){
-	this.wrdFreq = new Map()
-	}
-}
-
-class WordObject{
-	constructor(){
-	this.successor = new freqMap()
-	}
-	get frequency(){
-		return 0;
-	}
-}*/	
+		randArrIdx: randArrIdx, randRange: randRange, fillDictionary : fillDictionary, probableWord: probableWord}
