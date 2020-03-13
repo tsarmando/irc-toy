@@ -1,14 +1,14 @@
 
 const mapToObject= (yourMap) => {
 	const converted = {}	
-	console.log(yourMap)
 	yourMap.forEach( (value,key,map) => converted[key] = value )
 	return converted
 }
 const objectToMap = (obj) => {
 	const map1 = new Map(), entries = Object.entries(obj)
-	for(let i = 0; i < entries.length;i++)
+	for(let i = 0; i < entries.length;i++){
 		map1.set(entries[i][0],entries[i][1])
+	}
 	return map1
 }
 const writeMapJson= (yourMap, file) => {
@@ -23,8 +23,11 @@ const loadMapJson = (file, cb) => {
 	const fs = require('fs')
 	fs.readFile(file,'utf8', (err, data) => {
 		if(err)	return console.log(err)	
-		const yourMap = objectToMap(JSON.parse(data))	      
+		else{
+		console.log('okay')
+		const yourMap = objectToMap(JSON.parse(data))
 		cb(yourMap)
+		}
 	})
 
 }
